@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Squad Wars - June</title>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<style>
+:root {
+  --bg:#f5f5f7;--surface:#ffffff;--card:#ffffff;--border:rgba(0,0,0,0.08);
+  --text:#1a1a2e;--muted:#6b7280;--gold:#d97706;--gold-l:#fef3c7;
+  --red:#dc2626;--red-l:#fee2e2;--blue:#2563eb;--blue-l:#dbeafe;
+  --green:#16a34a;--green-l:#dcfce7;--orange:#ea580c;--orange-l:#ffedd5;
+  --purple:#7c3aed;--purple-l:#ede9fe;--teal:#0f766e;--teal-l:#ccfbf1;
+  --A:#dc2626;--Al:#fee2e2;--B:#2563eb;--Bl:#dbeafe;--C:#16a34a;--Cl:#dcfce7;
+  --r:12px;--shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
+.nav-title{font-size:17px;font-weight:800;color:var(--text);letter-spacing:2px}
+.nav-user{font-size:12px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:8px}
+.nav-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border)}
+.tab{flex:1;padding:13px 4px;text-align:center;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:700}
+.page{display:none;padding:16px;max-width:500px;margin:0 auto}
+.page.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+.btn{display:block;width:100%;padding:14px;border-radius:var(--r);border:none;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;margin-bottom:8px;letter-spacing:.2px}
+.btn:active{transform:scale(.98);opacity:.9}
+.btn:disabled{opacity:.35;cursor:default}
+.btn-dark{background:var(--text);color:#ffffff}
+.btn-surface{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-green{background:var(--green);color:#fff}
+.btn-purple{background:var(--purple);color:#fff}
+.btn-gold{background:var(--gold);color:#000}
+.btn-sm{padding:8px 14px;font-size:12px;width:auto;display:inline-block;border-radius:8px;margin-bottom:0}
+input,select{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;padding:12px 14px;width:100%;outline:none;font-family:inherit;margin-bottom:8px}
+input:focus,select:focus{border-color:var(--text)}
+input::placeholder{color:var(--muted)}
+#ob{position:fixed;inset:0;background:var(--text);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+.obtitle{font-size:40px;font-weight:900;color:var(--gold);letter-spacing:4px;margin-bottom:6px;text-align:center}
+.obsub{font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:32px;text-align:center}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:400px}
+.pbtn{background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s}
+.pbtn:active{transform:scale(.97)}
+.pbtn.sel{border-color:var(--gold);background:rgba(217,119,6,0.15)}
+.pname{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px}
+.prole{font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:4px;display:none;}
+.pteam{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block}
+.tA{background:var(--Al);color:var(--A)}.tB{background:var(--Bl);color:var(--B)}.tC{background:var(--Cl);color:var(--C)}
+.hero{border-radius:16px;padding:20px;margin-bottom:12px;position:relative;overflow:hidden;color:#fff}
+.hero-stripe{position:absolute;top:0;left:0;width:5px;height:100%}
+.hero-label{font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;padding-left:14px}
+.hero-pts{font-size:58px;font-weight:900;color:var(--gold);line-height:1;padding-left:14px}
+.hero-sub{font-size:13px;color:rgba(255,255,255,0.6);padding-left:14px;margin-top:4px}
+.nudge{background:var(--card);border-radius:var(--r);padding:13px 14px;margin-bottom:12px;border-left:4px solid var(--green);display:flex;align-items:flex-start;gap:10px;box-shadow:var(--shadow)}
+.nudge-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.nudge-text{font-size:13px;color:var(--text);line-height:1.5;font-weight:500}
+.nudge-text strong{color:var(--green)}
+.streak-card{background:var(--gold-l);border:1.5px solid var(--gold);border-radius:var(--r);padding:14px;margin-bottom:12px;text-align:center}
+.streak-num{font-size:32px;font-weight:900;color:var(--orange);margin-bottom:4px}
+.streak-msg{font-size:13px;color:var(--text);font-weight:600;line-height:1.4}
+.fact-card{background:var(--purple-l);border:1px solid var(--purple);border-radius:var(--r);padding:13px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start}
+.fact-icon{font-size:18px;flex-shrink:0}
+.fact-text{font-size:12px;color:var(--purple);font-weight:500;line-height:1.5}
+.srow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.sc{background:var(--card);border-radius:var(--r);padding:14px 12px;text-align:center;border:1px solid var(--border);box-shadow:var(--shadow)}
+.sv{font-size:26px;font-weight:800;color:var(--text)}
+.sl{font-size:10px;color:var(--muted);margin-top:3px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cdh{font-size:10px;color:var(--muted);text-align:center;padding:4px 0;font-weight:600}
+.cd{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:#f3f4f6;color:#9ca3af;position:relative}
+.cd.logged{background:var(--green-l);color:var(--green);border:1px solid var(--green);cursor:pointer}
+.cd.today{background:var(--text);color:var(--gold);font-weight:900}
+.cd.empty{background:transparent}
+.cal-tip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;font-size:10px;font-weight:600;padding:5px 8px;border-radius:7px;white-space:nowrap;z-index:99;max-width:160px;white-space:normal;line-height:1.4;text-align:center;pointer-events:none}
+.cal-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:#1a1a2e}
+.lbrow{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);gap:10px}
+.lbrow:last-child{border-bottom:none}
+.lbrow.top1{background:linear-gradient(90deg,var(--gold-l) 0%,transparent 100%);margin:0 -16px;padding:12px 16px;border-radius:8px}
+.lbrank{font-size:16px;font-weight:800;color:var(--muted);width:22px;text-align:center;flex-shrink:0}
+.r1{color:#d97706}.r2{color:#9ca3af}.r3{color:#b45309}
+.lbinfo{flex:1}
+.lbname{font-size:14px;font-weight:700;color:var(--text)}
+.lbmeta{font-size:11px;color:var(--muted);margin-top:2px}
+.tcard{border-radius:var(--r);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;border:1.5px solid var(--border);box-shadow:var(--shadow)}
+.tcard.A{background:var(--Al);border-color:var(--A)}.tcard.B{background:var(--Bl);border-color:var(--B)}.tcard.C{background:var(--Cl);border-color:var(--C)}
+.tcname{font-size:15px;font-weight:800}
+.tcard.A .tcname{color:var(--A)}.tcard.B .tcname{color:var(--B)}.tcard.C .tcname{color:var(--C)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{padding:8px 14px;border-radius:20px;font-size:13px;background:var(--bg);border:1px solid var(--border);cursor:pointer;transition:all .15s;user-select:none;font-weight:500}
+.chip:active{transform:scale(.95)}
+.chip.sel{background:var(--blue-l);border-color:var(--blue);color:var(--blue);font-weight:700}
+.chip.mine{border-color:var(--gold);border-width:1.5px}
+.fi{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.fi:last-child{border-bottom:none}
+.fav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.ftxt{flex:1}
+.fn{font-size:13px;font-weight:700;color:var(--text)}
+.fw{font-size:12px;color:var(--muted);margin-top:2px}
+.ft{font-size:10px;color:var(--muted);margin-top:2px}
+.pwrap{background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;margin-top:8px}
+.pbar{height:100%;border-radius:4px;transition:width .5s ease}
+.succ{text-align:center;padding:40px 20px}
+.succ-icon{font-size:64px;margin-bottom:16px}
+.succ-title{font-size:26px;font-weight:800;color:var(--green);margin-bottom:8px}
+.succ-sub{font-size:14px;color:var(--muted);margin-bottom:8px;line-height:1.5}
+.comeback-msg{font-size:14px;color:var(--orange);font-weight:600;margin-bottom:20px;padding:12px;background:var(--orange-l);border-radius:10px;line-height:1.5}
+.shdr{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:20px 0 10px}
+.row{display:flex;align-items:center;justify-content:space-between}
+.tmuted{color:var(--muted);font-size:13px;line-height:1.5}
+.hidden{display:none!important}
+.warn-box{padding:10px 12px;border-radius:8px;font-size:12px;margin-bottom:10px;line-height:1.5;font-weight:500}
+.warn-green{background:var(--green-l);border:1px solid var(--green);color:var(--green)}
+.warn-red{background:var(--red-l);border:1px solid var(--red);color:var(--red)}
+.warn-orange{background:var(--orange-l);border:1px solid var(--orange);color:var(--orange)}
+
+/* ── REPORT CARD STYLES ── */
+#reportModal{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:500;display:flex;flex-direction:column;align-items:center;overflow-y:auto;padding:20px 16px}
+#reportModal.hidden{display:none!important}
+.report-actions{display:flex;gap:10px;margin-bottom:16px;width:100%;max-width:390px}
+.report-card{width:360px;max-width:100%;border-radius:16px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#121212;position:relative}
+.rc-geo{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:.07}
+.rc-geo svg{width:100%;height:100%}
+.rc-header{padding:28px 24px 0;position:relative;z-index:1}
+.rc-brand{font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.35);text-transform:uppercase;margin-bottom:20px}
+.rc-name{font-size:52px;font-weight:900;color:#ffffff;line-height:1;letter-spacing:-1px;margin-bottom:24px}
+.rc-hero{padding:20px 24px;text-align:center;position:relative;z-index:1}
+.rc-hero-num{font-size:96px;font-weight:900;line-height:1;color:#fff;letter-spacing:-4px}
+.rc-hero-label{font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.45);text-transform:uppercase;margin-top:8px}
+.rc-divider{height:1px;background:rgba(255,255,255,.08);margin:0 24px}
+.rc-stat-row{display:grid;grid-template-columns:1fr 1px 1fr;padding:22px 24px;position:relative;z-index:1}
+.rc-stat-cell{text-align:center}
+.rc-stat-cell.left{padding-right:16px}
+.rc-stat-cell.right{padding-left:16px}
+.rc-hairline{background:rgba(255,255,255,.12);width:1px}
+.rc-stat-v{font-size:28px;font-weight:800;color:#fff;line-height:1;margin-bottom:5px;letter-spacing:-0.5px}
+.rc-stat-l{font-size:8px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.35);text-transform:uppercase}
+.rc-fav{font-size:18px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.rc-team-pill{margin:20px 24px 0;padding:10px 16px;border-radius:30px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;border:1px solid}
+.rank-gold{color:#FFD700;font-weight:900}
+.rank-silver{color:#C0C0C0;font-weight:900}
+.rank-bronze{color:#CD7F32;font-weight:900}
+.rc-footer-motif{padding:20px 24px 24px;text-align:center;position:relative;z-index:1}
+.rc-footer-text{font-size:11px;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.3);text-transform:uppercase}
+.rc-team-header{padding:28px 24px 20px}
+.rc-team-name{font-size:48px;font-weight:900;line-height:1;color:#fff}
+.rc-team-result{font-size:18px;font-weight:700;opacity:.8;color:#fff;margin-top:6px}
+.rc-team-members{display:flex;flex-wrap:wrap;gap:8px;padding:16px 24px;background:rgba(0,0,0,0.15)}
+.rc-member{padding:6px 14px;border-radius:20px;background:rgba(255,255,255,.15);font-size:12px;font-weight:700;color:#fff}
+.rc-team-stats{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:rgba(0,0,0,0.15)}
+.rc-team-stat{padding:16px;text-align:center;background:rgba(0,0,0,0.1)}
+.rc-team-stat-v{font-size:28px;font-weight:900;color:#fff}
+.rc-team-stat-l{font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;opacity:.6;margin-top:2px;color:#fff}
+.rc-team-para{padding:20px 24px;background:rgba(0,0,0,0.2);font-size:14px;line-height:1.7;color:rgba(255,255,255,.9);font-style:italic}
+</style>
+</head>
+<body>
+
+<div id="ob">
+  <div class="obtitle">SQUAD WARS</div>
+  <div class="obsub">Who are you?</div>
+  <div class="pgrid" id="obgrid"></div>
+  <div style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.3);text-align:center">We'll remember you on this device</div>
+</div>
+
+<div id="app" class="hidden">
+  <nav class="nav">
+    <div class="nav-title">SQUAD WARS</div>
+    <div class="nav-user" onclick="resetUser()">
+      <div class="nav-av" id="navAv"></div>
+      <span id="navNm" style="font-size:13px;font-weight:600"></span>
+    </div>
+  </nav>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('home')">Home</div>
+    <div class="tab" onclick="showTab('log')">Log</div>
+    <div class="tab" onclick="showTab('lb')">Board</div>
+    <div class="tab" onclick="showTab('feed')">Feed</div>
+    <div class="tab" onclick="showTab('admin')">Admin</div>
+  </div>
+
+  <div class="page active" id="page-home">
+    <div style="padding:10px 0 14px">
+      <div style="font-size:22px;font-weight:800" id="hGreet"></div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px" id="hDate"></div>
+    </div>
+    <div id="factCard"></div>
+    <div id="heroCard"></div>
+    <div id="nudgeCard"></div>
+    <div id="streakCard"></div>
+    <div id="roleBar"></div>
+    <div class="srow" id="hStats"></div>
+    <div class="shdr">June Calendar</div>
+    <div class="card" style="padding:12px"><div class="cg" id="calGrid"></div></div>
+    <div class="shdr">Team Streak Days</div>
+    <div class="card" id="teamStreakCard"></div>
+    <div class="shdr">Quick Log</div>
+    <button class="btn btn-dark" onclick="showTab('log')">Log Today's Workout</button>
+  </div>
+
+  <div class="page" id="page-log">
+    <div style="padding:8px 0 14px;font-size:20px;font-weight:800">Log Workout</div>
+    <div id="ls1">
+      <div class="card-title">Which day?</div>
+      <button class="btn btn-dark" onclick="pickDay('today')">Today</button>
+      <button class="btn btn-surface" onclick="showPicker()">Another day</button>
+      <div id="pickerWrap" class="hidden" style="margin-top:4px">
+        <input type="date" id="dpick" onchange="pickDayFromInput()" min="2026-06-01" max="2026-06-30" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;padding:13px 14px;width:100%;outline:none;font-family:inherit;margin-bottom:8px;cursor:pointer">
+      </div>
+    </div>
+    <div id="ls2" class="hidden">
+      <div class="row" style="margin-bottom:16px">
+        <div>
+          <div style="font-size:18px;font-weight:800" id="lDateLbl"></div>
+          <div class="tmuted" id="lExisting" style="font-size:12px;margin-top:2px"></div>
+        </div>
+        <button class="btn btn-surface btn-sm" onclick="backToS1()">Change</button>
+      </div>
+      <div class="card-title">What did you do? <span style="color:var(--muted);text-transform:none;font-weight:400;font-size:11px">tap multiple</span></div>
+      <div class="chips" id="wChips"></div>
+      <input type="text" id="custInp" placeholder="Type something new..." onkeydown="if(event.key==='Enter')addCustom()">
+      <button class="btn btn-surface btn-sm" onclick="addCustom()" style="margin-bottom:16px">Add</button>
+      <div id="selPrev" class="hidden">
+        <div class="shdr" style="margin-top:0">Selected</div>
+        <div id="selList" style="font-size:14px;margin-bottom:16px;color:var(--text);font-weight:600"></div>
+      </div>
+      <button class="btn btn-green" id="subBtn" onclick="submitLog()" disabled>Log Workout</button>
+    </div>
+    <div id="ls3" class="hidden">
+      <div class="succ">
+        <div class="succ-icon">💪</div>
+        <div class="succ-title" id="succTitle">Workout Logged!</div>
+        <div class="succ-sub" id="succSub"></div>
+        <div id="comebackMsg" class="comeback-msg hidden"></div>
+        <div class="card" id="succStats" style="text-align:left;margin-bottom:20px"></div>
+        <button class="btn btn-dark" onclick="resetLog()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-lb">
+    <div style="padding:8px 0 14px;font-size:20px;font-weight:800">Leaderboard</div>
+    <div class="shdr">Team Standings</div>
+    <div id="teamStand"></div>
+    <div class="shdr">Individual Rankings</div>
+    <div class="card" id="indLb"></div>
+    <div class="shdr">Your Points Breakdown</div>
+    <div class="card" id="ptsBk"></div>
+  </div>
+
+  <div class="page" id="page-feed">
+    <div style="padding:8px 0 14px;font-size:20px;font-weight:800">Activity Feed</div>
+    <div class="card" id="feedList"></div>
+  </div>
+
+  <div class="page" id="page-admin">
+    <div style="padding:8px 0 4px;font-size:20px;font-weight:800">Admin</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Only you should use this page</div>
+
+    <div class="card" style="border:2px solid var(--purple)">
+      <div class="card-title" style="color:var(--purple)">📊 Monthly Report Cards</div>
+      <div class="tmuted" style="margin-bottom:14px">Preview any player's report card using current data. On June 30th, tap "Send All" to unlock reports for everyone.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <select id="reportPlayerSel" style="margin-bottom:0">
+          <option value="">Select player</option>
+        </select>
+        <button class="btn btn-purple btn-sm" style="height:46px;margin-bottom:0" onclick="previewReport()">Preview Card</button>
+      </div>
+      <button class="btn btn-surface" onclick="previewTeamReport('A')" style="margin-bottom:6px">Preview Team A Card</button>
+      <button class="btn btn-surface" onclick="previewTeamReport('B')" style="margin-bottom:6px">Preview Team B Card</button>
+      <button class="btn btn-surface" onclick="previewTeamReport('C')" style="margin-bottom:6px">Preview Team C Card</button>
+      <div style="height:1px;background:var(--border);margin:12px 0"></div>
+      <button class="btn btn-gold" onclick="unlockReports()">🎁 Unlock Reports for Everyone</button>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">Use this on June 30th when everyone's done for the day</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Team Assignment</div>
+      <div class="tmuted" style="margin-bottom:12px">Update at the start of each month</div>
+      <div id="adminRoles"></div>
+      <button class="btn btn-dark" style="margin-top:12px" onclick="saveRoles()">Save All Changes</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Award 30-Day Bonus</div>
+      <div class="tmuted" style="margin-bottom:10px">+50 pts for logging all 30 days</div>
+      <select id="aPlayer"><option value="">Select player</option></select>
+      <button class="btn btn-dark" onclick="award30()">Award +50 Pts</button>
+    </div>
+    <div class="card" style="border: 1.5px solid var(--purple)">
+      <div class="card-title" style="color: var(--purple)">Developer Tools</div>
+      <div class="tmuted" style="margin-bottom:10px">Download a full backup of this month's raw workout history to use for report animations.</div>
+      <button class="btn btn-purple" onclick="downloadSquadWarsLogs()">📥 Export All Logs (.json)</button>
+    </div>
+  </div>
+</div>
+
+<div id="reportModal" class="hidden">
+  <div class="report-actions">
+    <button class="btn btn-surface btn-sm" onclick="closeReport()" style="flex:1">✕ Close</button>
+    <button class="btn btn-dark btn-sm" onclick="downloadReport()" style="flex:2">⬇ Save Image</button>
+  </div>
+  <div id="reportCardWrap"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+const FB_CFG={apiKey:"AIzaSyD9zjHYVXjmMs6GtxofziIcYCUa3PwJOcw",authDomain:"hardcoremay-5b24b.firebaseapp.com",projectId:"hardcoremay-5b24b",storageBucket:"hardcoremay-5b24b.firebasestorage.app",messagingSenderId:"328352656938",appId:"1:328352656938:web:7214be01fd6bb5e25edd53"};
+
+// Roles removed for June. Everyone defaults to Player.
+let PLAYERS=[
+  {name:"Anushi",team:"A",role:"Player"},{name:"Tanmay",team:"A",role:"Player"},
+  {name:"Hasti",team:"A",role:"Player"},{name:"Priyank",team:"A",role:"Player"},{name:"Harsh",team:"A",role:"Player"},
+  {name:"Vidhita",team:"B",role:"Player"},{name:"Bhavika",team:"B",role:"Player"},
+  {name:"Riya",team:"B",role:"Player"},{name:"Ronak",team:"B",role:"Player"},{name:"Tanish",team:"B",role:"Player"},
+  {name:"Hardik",team:"C",role:"Player"},{name:"Hritika",team:"C",role:"Player"},
+  {name:"Nirag",team:"C",role:"Player"},{name:"Twinkle",team:"C",role:"Player"},{name:"Sannidhi",team:"C",role:"Player"},
+];
+
+const COMMON=["Gym","Padel","Walk","Run","Yoga","Volleyball","Cricket","Swimming","Cycling","Pickleball","Pilates","Football","Basketball","Badminton","Weight training","Cardio","HIIT","Strength training","Zumba","Boxing","Stretching","Hiking","Dance","Rowing","Spinning"];
+const MONTH=5,YEAR=2026,DAYS=30; // June settings
+
+const DAILY_FACTS=["Your heart pumps 5 litres of blood per minute at rest. During exercise, that jumps to 20.","Muscle doesn't turn to fat when you stop training. They're completely different tissues.","A 20-minute walk can reduce anxiety as effectively as a mild tranquiliser.","Your bones are constantly rebuilding themselves. Weight training speeds this up significantly.","The human body has over 600 muscles. You ignored most of them today.","Exercise increases BDNF — a protein that literally grows new brain cells.","Cold water after a workout reduces soreness by constricting blood vessels. Ice baths aren't just for footballers.","Your muscles store enough glycogen for roughly 90 minutes of intense exercise. After that, you bonk.","Laughter activates the same endorphin pathways as exercise. Unfortunately it doesn't count as a workout.","The average person walks 100,000 miles in their lifetime. That's 4 times around the Earth.","Sleep is when your muscles actually repair. The gym breaks them. Bed fixes them.","Sweat has no smell. The bacteria on your skin does. You're welcome.","Your grip strength is one of the strongest predictors of long-term health outcomes. Squeeze something today.","The world record for most push-ups in 24 hours is 10,507. Your target is considerably more reasonable.","Rest days are not optional. Muscle grows during recovery, not during the workout.","Exercising in the morning increases your metabolism for up to 14 hours afterward.","The human body has 206 bones. Every single one benefits from regular movement.","Consistent moderate exercise can add up to 7 years to your life expectancy.","Your brain uses 20% of your body's energy even at rest. Exercise makes it more efficient.","Standing for 3 hours a day burns the same calories as running 10 marathons a year.","Stretching before bed improves sleep quality by reducing muscle tension and cortisol.","The fittest organ in your body is your heart — it never skips a workout.","Dehydration of just 2% reduces athletic performance by up to 10%. Drink water.","Working out with a group makes you exercise harder and longer than going alone. Science agrees.","Your body burns more calories in the 24 hours after a workout than during it.","Running a kilometre burns roughly the same calories whether you walk or sprint it. Pace is optional.","Muscles have memory. Taking a break doesn't reset everything — they bounce back faster than you think.","The word 'exercise' comes from the Latin 'exercere' meaning to drive out or keep busy. Keep busy.","You have about 37 trillion cells in your body. Every single one benefits when you move.","The endorphin rush after exercise lasts up to 4 hours. That's a long time to feel smug.","Consistency beats intensity every single time. Showing up is the whole battle."];
+const STREAK_MSGS={2:"Two in a row. Even your excuses are impressed.",3:"Three days straight. Your bed is filing a complaint.",4:"Four days. The couch has started a support group.",5:"Five days straight. Your alarm is starting to respect you.",6:"Six days. At this point your body thinks this is normal. It is.",7:"A full week. Somewhere, a gym bro is shedding a single tear of pride.",8:"Eight days. You're either very disciplined or very competitive. Both work.",9:"Nine days. The excuses have packed their bags and left.",10:"Ten days. You're basically a professional at this point.",14:"Two weeks straight. Your past self wouldn't believe it.",21:"Three weeks. Scientists say habits form at 21 days. Congratulations, you're a habit.",30:"Thirty days. You absolute machine. This is the way."};
+const COMEBACK_MSGS=["Oh look who decided to show up. The leaderboard was getting lonely.","Back from the dead. We were about to file a missing persons report.","The couch finally let you go. Respect its sacrifice.","Your streak is gone but your audacity is intact. We respect it.","Absence makes the muscles weaker. Welcome back anyway.","We didn't miss you. The leaderboard did though.","Plot twist — they're back. Log something before we all faint.","The gym forgot your name. Time to reintroduce yourself.","Your team has questions. We suggest logging and asking for forgiveness later.","Rest days are healthy. Several of them in a row is a lifestyle choice. Welcome back."];
+
+function getDailyFact(){return DAILY_FACTS[(new Date().getDate()-1)%DAILY_FACTS.length];}
+function getStreakMsg(s){const keys=Object.keys(STREAK_MSGS).map(Number).sort((a,b)=>b-a);for(const k of keys){if(s>=k)return STREAK_MSGS[k];}return null;}
+function getRandomComeback(){return COMEBACK_MSGS[Math.floor(Math.random()*COMEBACK_MSGS.length)];}
+
+let db,me=null,selDay=null,selW=[];
+let allLogs=[],bonus30=[];
+
+firebase.initializeApp(FB_CFG);
+db=firebase.firestore();
+
+window.onload=()=>{
+  const savedPlayers=localStorage.getItem('sw_players');
+  if(savedPlayers){const parsed=JSON.parse(savedPlayers);parsed.forEach(saved=>{const p=PLAYERS.find(x=>x.name===saved.name);if(p){p.team=saved.team;p.role="Player";}});}
+  const s=localStorage.getItem('sw_user');
+  if(s){me=JSON.parse(s);boot();}else{buildOnboard();}
+  document.addEventListener('click',e=>{if(!e.target.classList.contains('cd'))document.querySelectorAll('.cal-tip').forEach(t=>t.remove());});
+};
+
+function buildOnboard(){document.getElementById('obgrid').innerHTML=PLAYERS.map(p=>`<div class="pbtn" onclick="choosePlayer('${p.name}')"><div class="pname">${p.name}</div><div class="prole">${p.role}</div><div class="pteam t${p.team}">Team ${p.team}</div></div>`).join('');}
+function choosePlayer(name){me=PLAYERS.find(p=>p.name===name);localStorage.setItem('sw_user',JSON.stringify(me));document.getElementById('ob').style.display='none';boot();}
+function resetUser(){if(!confirm('Switch user?'))return;localStorage.removeItem('sw_user');location.reload();}
+
+function boot(){
+  document.getElementById('ob').style.display='none';
+  document.getElementById('app').classList.remove('hidden');
+  const p=PLAYERS.find(x=>x.name===me.name)||me;
+  const tc=p.team==='A'?'#dc2626':p.team==='B'?'#2563eb':'#16a34a';
+  const tbg=p.team==='A'?'#fee2e2':p.team==='B'?'#dbeafe':'#dcfce7';
+  const av=document.getElementById('navAv');
+  av.textContent=me.name[0];av.style.background=tbg;av.style.color=tc;av.style.border=`2px solid ${tc}`;
+  document.getElementById('navNm').textContent=me.name;
+  const s=document.getElementById('aPlayer');
+  PLAYERS.forEach(p=>{const o=document.createElement('option');o.value=p.name;o.textContent=p.name;s.appendChild(o);});
+  
+  const rp=document.getElementById('reportPlayerSel');
+  PLAYERS.forEach(p=>{const o=document.createElement('option');o.value=p.name;o.textContent=p.name;rp.appendChild(o);});
+  renderAdminRoles();subscribe();renderHome();
+}
+
+function subscribe(){
+  db.collection('logs').where('month','==',MONTH).where('year','==',YEAR).onSnapshot(s=>{allLogs=s.docs.map(d=>({id:d.id,...d.data()}));refresh();});
+  db.collection('bonuses_30day').where('month','==',MONTH).where('year','==',YEAR).onSnapshot(s=>{bonus30=s.docs.map(d=>({id:d.id,...d.data()}));refresh();});
+}
+function refresh(){renderHome();renderLB();renderFeed();}
+
+// ── SCORING ────────────────────────────────────────────────────────────────
+function score(playerName){
+  const p=PLAYERS.find(x=>x.name===playerName);
+  const logs=allLogs.filter(l=>l.player===playerName);
+  const days=new Set(logs.map(l=>l.day));
+  const wo=days.size;
+  const base=wo*5;
+  const today=new Date();
+  const todayDay=today.getMonth()===MONTH&&today.getFullYear()===YEAR?today.getDate():DAYS;
+  const checkUpTo=days.has(todayDay)?todayDay:todayDay-1;
+  let cur=0;
+  for(let d=1;d<=checkUpTo;d++){if(days.has(d))cur++;else cur=0;}
+  const streak=cur;
+  
+  // 7-Day Continuous Streak Logic
+  let wb=0;
+  let run=0;
+  for(let d=1;d<=DAYS;d++){
+    if(days.has(d)){
+      run++;
+      if(run % 7 === 0) wb += 10;
+    } else {
+      run = 0;
+    }
+  }
+
+  const rb = 0; // Role logic is removed for June
+  
+  const teamLogs=allLogs.filter(l=>PLAYERS.find(x=>x.name===l.player&&x.team===p.team));
+  const dc={};
+  teamLogs.forEach(l=>{if(!dc[l.day])dc[l.day]=new Set();dc[l.day].add(l.player);});
+  let tb=0,teamStreak=0;
+  for(let d=1;d<=DAYS;d++){const pt=dc[d]||new Set();if(pt.size>=3){teamStreak++;if(pt.has(playerName))tb+=Math.min(3,teamStreak);}else{teamStreak=0;}}
+  const b30=bonus30.find(b=>b.player===playerName)?50:0;
+  
+  const isLastDay=today.getMonth()===MONTH&&today.getFullYear()===YEAR&&today.getDate()===DAYS;
+  const isAfterMonth=today.getMonth()>MONTH||today.getFullYear()>YEAR;
+  const pen=(isLastDay||isAfterMonth)&&wo<12?(wo-12)*5:0;
+  
+  const total=base+wb+rb+tb+b30-pen; // Changed to minus pen to fix the deduction display correctly
+
+  // Extra stats for report
+  const teamStreakDays=Object.values(dc).filter(ps=>ps.has(playerName)&&ps.size>=3).length;
+  let bestStreak=0,runStreak=0;
+  for(let d=1;d<=DAYS;d++){if(days.has(d)){runStreak++;bestStreak=Math.max(bestStreak,runStreak);}else{runStreak=0;}}
+
+  let comebacks=0,lastLogged=-99;
+  const sortedDays=[...days].sort((a,b)=>a-b);
+  sortedDays.forEach(d=>{if(d-lastLogged>=3)comebacks++;lastLogged=d;});
+  if(sortedDays.length>0)comebacks=Math.max(0,comebacks-1);
+
+  const wCounts={};
+  logs.forEach(l=>(l.workouts||[l.workout]).filter(Boolean).forEach(w=>{wCounts[w]=(wCounts[w]||0)+1;}));
+  const favWorkout=Object.entries(wCounts).sort((a,b)=>b[1]-a[1])[0];
+
+  const uniqueWorkouts=new Set(logs.flatMap(l=>l.workouts||[l.workout]).filter(Boolean)).size;
+  const firstHalf=[...days].filter(d=>d<=15).length;
+  const secondHalf=[...days].filter(d=>d>15).length;
+
+  return {wo,base,sb:0,wb,rb,tb,b30,pen: -pen,total,streak,days,teamStreakDays,bestStreak,comebacks,favWorkout,uniqueWorkouts,firstHalf,secondHalf,wCounts};
+}
+
+function teamTotal(team){
+  const members = PLAYERS.filter(p=>p.team===team);
+  if(members.length === 0) return 0;
+  const total = members.reduce((s,p)=>s+score(p.name).total,0);
+  return Math.round(total / members.length);
+}
+
+// ── REPORT ENGINE ──────────────────────────────────────────────────────────
+function getArchetype(sc,rank){
+  if(sc.wo>=24) return 'machine';
+  if(sc.bestStreak>=14) return 'streaker';
+  if(sc.wo>=18&&sc.bestStreak>=7) return 'consistent';
+  if(sc.comebacks>=2&&sc.wo>=10) return 'comeback';
+  if(sc.secondHalf-sc.firstHalf>=5) return 'latebloomer';
+  if(sc.wo<10) return 'struggling';
+  return 'contributor';
+}
+
+function getSuperlative(playerName, sc, rank){
+  const allScores=PLAYERS.map(p=>({name:p.name,sc:score(p.name)}));
+  const maxWO=Math.max(...allScores.map(x=>x.sc.wo));
+  const maxStreak=Math.max(...allScores.map(x=>x.sc.bestStreak));
+  const maxTeamDays=Math.max(...allScores.map(x=>x.sc.teamStreakDays));
+  const maxComebacks=Math.max(...allScores.map(x=>x.sc.comebacks));
+  const maxVariety=Math.max(...allScores.map(x=>x.sc.uniqueWorkouts));
+
+  if(rank===1) return {icon:'👑',label:'Hero of Squad Wars'};
+  if(rank===2) return {icon:'🥈',label:'Runner Up'};
+  if(rank===3) return {icon:'🥉',label:'Third Place'};
+  if(sc.wo===maxWO&&rank>3) return {icon:'🏆',label:'Iron Attendance'};
+  if(sc.bestStreak===maxStreak) return {icon:'🔥',label:'Unbroken'};
+  if(sc.teamStreakDays===maxTeamDays) return {icon:'⚡',label:'Team Glue'};
+  if(sc.comebacks===maxComebacks&&sc.comebacks>=2) return {icon:'🔄',label:'The Returner'};
+  if(sc.uniqueWorkouts===maxVariety&&sc.uniqueWorkouts>=4) return {icon:'🎨',label:'Renaissance Athlete'};
+  if(sc.secondHalf-sc.firstHalf>=5) return {icon:'📈',label:'Late Bloomer'};
+  if(sc.favWorkout&&sc.wCounts[sc.favWorkout[0]]>=5) return {icon:'🎯',label:'The Specialist'};
+  return {icon:'💪',label:'Showed Up'};
+}
+
+function getTeamColour(team){
+  return team==='A'?['#dc2626','#b91c1c']:team==='B'?['#2563eb','#1d4ed8']:['#16a34a','#15803d'];
+}
+
+function buildReportCard(playerName){
+  const p=PLAYERS.find(x=>x.name===playerName);
+  const sc=score(playerName);
+  const rank=getRank(playerName);
+
+  const accent=p.team==='A'?'#ef4444':p.team==='B'?'#3b82f6':'#22c55e';
+  const accentGlow=p.team==='A'?'rgba(239,68,68,0.4)':p.team==='B'?'rgba(59,130,246,0.4)':'rgba(34,197,94,0.4)';
+
+  let rankDisplay;
+  if(rank===1) rankDisplay=`<span class="rank-gold">#1</span>`;
+  else if(rank===2) rankDisplay=`<span class="rank-silver">#2</span>`;
+  else if(rank===3) rankDisplay=`<span class="rank-bronze">#3</span>`;
+  else rankDisplay=`#${rank}`;
+
+  const favLabel=sc.favWorkout?sc.favWorkout[0]:'VARIED';
+  const teamWon=teamTotal(p.team)===Math.max(...['A','B','C'].map(t=>teamTotal(t)));
+
+  return `<div class="report-card" id="rCard_${playerName}">
+    <div class="rc-geo">
+      <svg viewBox="0 0 360 680" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="0,0 220,0 0,220" fill="white"/>
+        <polygon points="360,0 360,260 80,0" fill="white"/>
+        <polygon points="0,420 200,680 0,680" fill="white"/>
+        <polygon points="360,480 360,680 140,680" fill="white"/>
+        <circle cx="300" cy="160" r="130" fill="white"/>
+        <circle cx="50" cy="540" r="90" fill="white"/>
+      </svg>
+    </div>
+    <div class="rc-header">
+      <div class="rc-brand">Squad Wars &mdash; June 2026</div>
+      <div class="rc-name">${playerName}</div>
+    </div>
+    <div class="rc-hero">
+      <div class="rc-hero-num" style="text-shadow:0 0 40px ${accentGlow},0 0 80px ${accentGlow};color:${accent}">${sc.wo}</div>
+      <div class="rc-hero-label">Workouts Completed</div>
+    </div>
+    <div class="rc-divider"></div>
+    <div class="rc-stat-row">
+      <div class="rc-stat-cell left">
+        <div class="rc-stat-v">${sc.total}</div>
+        <div class="rc-stat-l">Total Points</div>
+      </div>
+      <div class="rc-hairline"></div>
+      <div class="rc-stat-cell right">
+        <div class="rc-stat-v">${sc.bestStreak}</div>
+        <div class="rc-stat-l">Day Peak Streak</div>
+      </div>
+    </div>
+    <div class="rc-divider"></div>
+    <div class="rc-stat-row">
+      <div class="rc-stat-cell left">
+        <div class="rc-stat-v">${sc.uniqueWorkouts}</div>
+        <div class="rc-stat-l">Disciplines Conquered</div>
+      </div>
+      <div class="rc-hairline"></div>
+      <div class="rc-stat-cell right">
+        <div class="rc-fav">${favLabel}</div>
+        <div class="rc-stat-l">Primary Focus</div>
+      </div>
+    </div>
+    <div class="rc-divider"></div>
+    <div class="rc-team-pill" style="border-color:${accent};color:${accent}">
+      Team ${p.team} ${teamWon?'Champions':'Contributor'} &nbsp;&bull;&nbsp; Final Rank: ${rankDisplay} of 15
+    </div>
+    <div class="rc-footer-motif">
+      <div class="rc-footer-text">June Secured. July Awaits.</div>
+    </div>
+  </div>`;
+}
+
+function buildTeamCard(team){
+  const members=PLAYERS.filter(p=>p.team===team);
+  const [c1,c2]=getTeamColour(team);
+  const teams=['A','B','C'].map(t=>({t,s:teamTotal(t)})).sort((a,b)=>b.s-a.s);
+  const rank=teams.findIndex(t=>t.t===team)+1;
+  const won=rank===1;
+  const teamPts=teamTotal(team);
+  const totalWO=members.reduce((s,p)=>s+score(p.name).wo,0);
+
+  const teamLogs=allLogs.filter(l=>PLAYERS.find(x=>x.name===l.player&&x.team===team));
+  const dc={};
+  teamLogs.forEach(l=>{if(!dc[l.day])dc[l.day]=new Set();dc[l.day].add(l.player);});
+  let maxTeamStreak=0,curTS=0;
+  for(let d=1;d<=DAYS;d++){const pt=dc[d]||new Set();if(pt.size>=3){curTS++;maxTeamStreak=Math.max(maxTeamStreak,curTS);}else{curTS=0;}}
+  const qualDays=Object.values(dc).filter(ps=>ps.size>=3).length;
+
+  return `<div class="report-card" id="rCard_team${team}" style="background:linear-gradient(160deg,${c1} 0%,${c2} 100%)">
+    <div class="rc-team-header">
+      <div class="rc-month">Squad Wars · June 2026</div>
+      <div class="rc-team-name">Team ${team}</div>
+      <div class="rc-team-result">${won?'🏆 June Champions':'#'+rank+' · June 2026'}</div>
+    </div>
+    <div class="rc-team-members">${members.map(p=>`<div class="rc-member">${p.name}</div>`).join('')}</div>
+    <div class="rc-team-stats">
+      <div class="rc-team-stat"><div class="rc-team-stat-v">${teamPts}</div><div class="rc-team-stat-l">Team Avg Points</div></div>
+      <div class="rc-team-stat"><div class="rc-team-stat-v">${totalWO}</div><div class="rc-team-stat-l">Total Workouts</div></div>
+      <div class="rc-team-stat"><div class="rc-team-stat-v">${qualDays}</div><div class="rc-team-stat-l">Team Bonus Days</div></div>
+      <div class="rc-team-stat"><div class="rc-team-stat-v">${maxTeamStreak}</div><div class="rc-team-stat-l">Best Streak Run</div></div>
+    </div>
+    <div class="rc-footer" style="margin-top:20px; padding-bottom: 20px;">
+      <div class="rc-footer-brand" style="text-align: center; color: rgba(255,255,255,0.5); font-size: 11px;">SQUAD WARS · JUNE 2026</div>
+    </div>
+  </div>`;
+}
+
+function previewReport(){
+  const name=document.getElementById('reportPlayerSel').value;
+  if(!name){alert('Select a player');return;}
+  document.getElementById('reportCardWrap').innerHTML=buildReportCard(name);
+  document.getElementById('reportModal').classList.remove('hidden');
+  window._currentCardId=`rCard_${name}`;
+}
+
+function previewTeamReport(team){
+  document.getElementById('reportCardWrap').innerHTML=buildTeamCard(team);
+  document.getElementById('reportModal').classList.remove('hidden');
+  window._currentCardId=`rCard_team${team}`;
+}
+
+function closeReport(){document.getElementById('reportModal').classList.add('hidden');}
+
+function downloadReport(){
+  const card=document.getElementById(window._currentCardId);
+  if(!card){alert('No card to download');return;}
+  html2canvas(card,{scale:3,useCORS:true,backgroundColor:null}).then(canvas=>{
+    const link=document.createElement('a');
+    link.download=`squadwars_${window._currentCardId}.png`;
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+  }).catch(()=>alert('Download failed — try screenshotting instead'));
+}
+
+function unlockReports(){
+  if(!confirm('This will unlock the Report tab for all users. Do this on June 30th when everyone is done for the day.'))return;
+  localStorage.setItem('sw_reports_unlocked','true');
+  alert('✅ Reports unlocked! Everyone can now see their card in the Reports tab.');
+}
+
+// ── HOME, LOG, LB, FEED ─────────────
+function renderHome(){
+  const now=new Date();const h=now.getHours();const g=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  document.getElementById('hGreet').textContent=`${g}, ${me.name} 👋`;
+  document.getElementById('hDate').textContent=now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const sc=score(me.name);const pl=PLAYERS.find(p=>p.name===me.name)||me;
+  const tc=pl.team==='A'?'#dc2626':pl.team==='B'?'#2563eb':'#16a34a';
+  document.getElementById('factCard').innerHTML=`<div class="fact-card"><div class="fact-icon">🧠</div><div class="fact-text"><strong>Did you know?</strong> ${getDailyFact()}</div></div>`;
+  document.getElementById('heroCard').innerHTML=`<div class="hero" style="background:#1a1a2e"><div class="hero-stripe" style="background:${tc}"></div><div class="hero-label">Your points</div><div class="hero-pts">${sc.total}</div><div class="hero-sub">Rank #${getRank(me.name)} of ${PLAYERS.length} · Team ${pl.team}</div></div>`;
+  document.getElementById('nudgeCard').innerHTML=getNudgeHTML(me.name,sc);
+  const smsg=getStreakMsg(sc.streak);
+  document.getElementById('streakCard').innerHTML=sc.streak>=2&&smsg?`<div class="streak-card"><div class="streak-num">${sc.streak} 🔥</div><div class="streak-msg">${smsg}</div></div>`:'';
+  
+  let rHTML='';
+  if(sc.wo<12){const missing=12-sc.wo;rHTML=`<div class="warn-box warn-orange">⚠️ You need ${missing} more workouts to avoid a <strong>${missing*5} pt deduction</strong> on June 30</div>`;}
+  document.getElementById('roleBar').innerHTML=rHTML;
+  document.getElementById('hStats').innerHTML=`<div class="sc"><div class="sv">${sc.wo}</div><div class="sl">Workouts</div></div><div class="sc"><div class="sv" style="color:var(--orange)">${sc.streak} 🔥</div><div class="sl">Streak</div></div>`;
+  
+  const todayD=now.getMonth()===MONTH&&now.getFullYear()===YEAR?now.getDate():-1;
+  const hdrs=['M','T','W','T','F','S','S'];
+  
+  // June 1st 2026 is a Monday. Zero offset needed!
+  let cal=hdrs.map(d=>`<div class="cdh">${d}</div>`).join('');
+  
+  for(let d=1;d<=DAYS;d++){
+    const logged=sc.days.has(d),isToday=d===todayD;
+    if(logged){const workoutsToday=[...new Set(allLogs.filter(l=>l.player===me.name&&l.day===d).flatMap(l=>l.workouts||[l.workout]).filter(Boolean))].join(', ');cal+=`<div class="cd logged" onclick="showCalTip(this,'${workoutsToday.replace(/'/g,"&#39;")}')">${d}</div>`;}
+    else{cal+=`<div class="cd${isToday?' today':''}">${d}</div>`;}
+  }
+  document.getElementById('calGrid').innerHTML=cal;
+  
+  const team=pl.team;
+  const teamLogs=allLogs.filter(l=>PLAYERS.find(p=>p.name===l.player&&p.team===team));
+  const dc={};teamLogs.forEach(l=>{if(!dc[l.day])dc[l.day]=new Set();dc[l.day].add(l.player);});
+  const bonusDays=Object.entries(dc).filter(([d,ps])=>ps.size>=3).map(([d])=>+d).sort((a,b)=>a-b);
+  document.getElementById('teamStreakCard').innerHTML=`<div class="card-title">Team ${team} qualifying streak days</div>${bonusDays.length===0?'<div class="tmuted">No qualifying days yet. Get 3+ teammates to log on the same day!</div>':bonusDays.map(d=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px">June ${d} — ${dc[d].size} members</span><span style="font-size:11px;color:var(--green);font-weight:600">✅ Streak bonus</span></div>`).join('')}`;
+}
+
+function showCalTip(el,text){document.querySelectorAll('.cal-tip').forEach(t=>t.remove());const tip=document.createElement('div');tip.className='cal-tip';tip.textContent=text;el.appendChild(tip);setTimeout(()=>tip.remove(),2500);}
+function getRank(playerName){const sorted=PLAYERS.map(p=>({name:p.name,pts:score(p.name).total})).sort((a,b)=>b.pts-a.pts);return sorted.findIndex(p=>p.name===playerName)+1;}
+function getNudgeHTML(playerName,sc){
+  const sorted=PLAYERS.map(p=>({name:p.name,pts:score(p.name).total})).sort((a,b)=>b.pts-a.pts);
+  const myIdx=sorted.findIndex(p=>p.name===playerName);const myPts=sorted[myIdx].pts;
+  if(myIdx===0){const gap=myPts-(sorted[1]?.pts||0);return `<div class="nudge"><div class="nudge-icon">👑</div><div class="nudge-text">You're leading the pack. <strong>${sorted[1]?.name}</strong> is ${gap} pts behind. Don't get comfortable.</div></div>`;}
+  const ahead=sorted[myIdx-1];const gap=ahead.pts-myPts;const needed=Math.ceil(gap/5);
+  return `<div class="nudge"><div class="nudge-icon">⚡</div><div class="nudge-text">You're <strong>${gap} pts behind ${ahead.name}</strong>. ${needed} workout${needed>1?'s':''} and you overtake them.</div></div>`;
+}
+
+function pickDay(t){if(t==='today'){const now=new Date();if(now.getMonth()!==MONTH||now.getFullYear()!==YEAR){alert('Today is not in June 2026');return;}selDay=now.getDate();}goS2();}
+function showPicker(){document.getElementById('pickerWrap').classList.remove('hidden');}
+function pickDayFromInput(){const v=document.getElementById('dpick').value;if(!v)return;selDay=new Date(v).getDate();goS2();}
+function goS2(){
+  document.getElementById('ls1').classList.add('hidden');document.getElementById('ls2').classList.remove('hidden');
+  const dt=new Date(YEAR,MONTH,selDay);
+  document.getElementById('lDateLbl').textContent=dt.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+  const ex=allLogs.filter(l=>l.player===me.name&&l.day===selDay).flatMap(l=>l.workouts||[l.workout]).filter(Boolean);
+  document.getElementById('lExisting').textContent=ex.length?`Already logged: ${ex.join(', ')}`:'';
+  buildChips();selW=[];updateSel();updBtn();
+}
+function buildChips(){
+  const mine=[...new Set(allLogs.filter(l=>l.player===me.name).flatMap(l=>l.workouts||[l.workout]).filter(Boolean))];
+  const all=[...new Set([...mine,...COMMON])];
+  document.getElementById('wChips').innerHTML=all.map((w,i)=>{const cls=mine.includes(w)?'mine':'';return `<div class="chip ${cls}" id="chip_${i}" onclick="toggleChip(this,'chip_${i}','${w.replace(/'/g,"\\'")}')">${w}</div>`;}).join('');
+}
+function toggleChip(el,chipId,w){el.classList.toggle('sel');if(el.classList.contains('sel')){if(!selW.includes(w))selW.push(w);}else{selW=selW.filter(x=>x!==w);}updateSel();updBtn();}
+function addCustom(){const inp=document.getElementById('custInp');const v=inp.value.trim();if(!v)return;if(!selW.includes(v))selW.push(v);inp.value='';updateSel();updBtn();}
+function updateSel(){const w=document.getElementById('selPrev'),l=document.getElementById('selList');if(selW.length===0){w.classList.add('hidden');return;}w.classList.remove('hidden');l.textContent=selW.join(' · ');}
+function updBtn(){document.getElementById('subBtn').disabled=selW.length===0;}
+
+async function submitLog(){
+  const btn=document.getElementById('subBtn');btn.disabled=true;btn.textContent='Saving...';
+  try{
+    await db.collection('logs').add({player:me.name,team:me.team,role:me.role,workouts:selW,day:selDay,month:MONTH,year:YEAR,timestamp:firebase.firestore.FieldValue.serverTimestamp()});
+    const sc=score(me.name);
+    const myDays=[...allLogs.filter(l=>l.player===me.name).map(l=>l.day)].sort((a,b)=>a-b);
+    const lastDay=myDays.length>=2?myDays[myDays.length-2]:null;const isComeback=lastDay&&(selDay-lastDay)>=3;
+    document.getElementById('ls2').classList.add('hidden');document.getElementById('ls3').classList.remove('hidden');
+    document.getElementById('succTitle').textContent=isComeback?'Welcome Back!':'Workout Logged!';
+    document.getElementById('succSub').textContent=`${selW.join(', ')} · June ${selDay}`;
+    const cbMsg=document.getElementById('comebackMsg');
+    if(isComeback){cbMsg.textContent=getRandomComeback();cbMsg.classList.remove('hidden');}else{cbMsg.classList.add('hidden');}
+    document.getElementById('succStats').innerHTML=`<div class="srow" style="margin-bottom:0"><div class="sc"><div class="sv">${sc.total}</div><div class="sl">Points</div></div><div class="sc"><div class="sv">${sc.wo}</div><div class="sl">Workouts</div></div><div class="sc" style="grid-column:1/-1"><div class="sv" style="color:var(--orange)">${sc.streak} 🔥</div><div class="sl">Streak</div></div></div>`;
+  }catch(e){alert('Error saving. Check connection.');btn.disabled=false;btn.textContent='Log Workout';}
+}
+function resetLog(){selDay=null;selW=[];['ls1','ls2','ls3'].forEach((id,i)=>document.getElementById(id).classList[i===0?'remove':'add']('hidden'));document.getElementById('pickerWrap').classList.add('hidden');showTab('home');}
+function backToS1(){document.getElementById('ls1').classList.remove('hidden');document.getElementById('ls2').classList.add('hidden');}
+
+function renderLB(){
+  const ts=['A','B','C'].map(t=>({t,s:teamTotal(t)})).sort((a,b)=>b.s-a.s);
+  const tcol=t=>t==='A'?'var(--A)':t==='B'?'var(--B)':'var(--C)';
+  document.getElementById('teamStand').innerHTML=ts.map((t,i)=>`<div class="tcard ${t.t}"><div><div class="tcname">#${i+1} Team ${t.t}</div><div style="font-size:11px;color:var(--muted);margin-top:3px">${PLAYERS.filter(p=>p.team===t.t).map(p=>p.name).join(', ')}</div></div><div style="text-align:right"><div style="font-size:28px;font-weight:900;color:${t.t==='A'?'var(--A)':t.t==='B'?'var(--B)':'var(--C)'}">${t.s}</div><div style="font-size:10px;color:var(--muted)">avg pts</div></div></div>`).join('');
+  
+  const ind=PLAYERS.map(p=>({...p,sc:score(p.name)})).sort((a,b)=>b.sc.total-a.sc.total);
+  document.getElementById('indLb').innerHTML=ind.map((p,i)=>{
+    const tc=tcol(p.team);const tbg=p.team==='A'?'var(--Al)':p.team==='B'?'var(--Bl)':'var(--Cl)';const isMe=p.name===me.name;
+    return `<div class="lbrow${i===0?' top1':''}" style="${isMe?'background:#f0fdf4;margin:0 -16px;padding:12px 16px;border-radius:8px':''}"><div class="lbrank ${i===0?'r1':i===1?'r2':i===2?'r3':''}">${i+1}</div><div style="width:34px;height:34px;border-radius:50%;background:${tbg};border:2px solid ${tc};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:${tc};flex-shrink:0">${p.name[0]}</div><div class="lbinfo"><div class="lbname">${p.name}${isMe?' <span style="font-size:10px;color:var(--green);font-weight:700">· you</span>':''}</div><div class="lbmeta">${p.sc.wo} workouts · ${p.sc.streak}🔥</div></div><div style="text-align:right"><div style="font-size:20px;font-weight:800;color:var(--text)">${p.sc.total}</div><div style="font-size:10px;color:var(--muted)">pts</div></div></div>`;
+  }).join('');
+  
+  const my=score(me.name);
+  document.getElementById('ptsBk').innerHTML=`<div class="card-title">Your breakdown</div>${[['Base points',my.base,`${my.wo} workouts × 5`],['7-Day Streaks',my.wb,'+10 per continuous 7 days'],['Team streak',my.tb,'Cumulative team streak bonus (+1/+2/+3)'],['Full Month Bonus',my.b30,'All 30 days logged'],['Penalty',my.pen,'Applied June 30 — -5 per workout below 12'],].map(([l,v,s])=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:13px;font-weight:500">${l}</div><div style="font-size:11px;color:var(--muted)">${s}</div></div><div style="font-size:15px;font-weight:800;color:${v<0?'var(--red)':v>0?'var(--green)':'var(--muted)'}">${v>0?'+':''}${v}</div></div>`).join('')}<div class="row" style="padding:12px 0 0"><div style="font-size:15px;font-weight:700">Total</div><div style="font-size:26px;font-weight:900;color:var(--text)">${my.total}</div></div>`;
+}
+
+function renderFeed(){
+  const sorted=[...allLogs].sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
+  const tcol=t=>t==='A'?'var(--A)':t==='B'?'var(--B)':'var(--C)';
+  const tbg=t=>t==='A'?'var(--Al)':t==='B'?'var(--Bl)':'var(--Cl)';
+  const now=new Date();
+  const todayDay=now.getMonth()===MONTH&&now.getFullYear()===YEAR?now.getDate():-1;
+  const todayPlayers=new Set(allLogs.filter(l=>l.day===todayDay).map(l=>l.player));
+  const todayCount=todayPlayers.size;
+  const teamCounts={A:0,B:0,C:0};
+  todayPlayers.forEach(name=>{const p=PLAYERS.find(x=>x.name===name);if(p)teamCounts[p.team]++;});
+  const topTeamEntry=Object.entries(teamCounts).sort((a,b)=>b[1]-a[1])[0];
+  const topTeam=topTeamEntry[1]>0?topTeamEntry[0]:null;
+  const allStreaks=PLAYERS.map(p=>({name:p.name,streak:score(p.name).streak})).filter(p=>p.streak>0).sort((a,b)=>b.streak-a.streak);
+  const topStreak=allStreaks[0]?.streak||0;
+  const topStreakers=allStreaks.filter(p=>p.streak===topStreak);
+
+  let statsHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+    <div style="background:var(--green-l);border-radius:10px;padding:12px;text-align:center">
+      <div style="font-size:26px;font-weight:900;color:var(--green)">${todayCount}<span style="font-size:13px;font-weight:500;color:var(--green)">/${PLAYERS.length}</span></div>
+      <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Logged today</div>
+    </div>
+    <div style="background:${topTeam?tbg(topTeam):'#f3f4f6'};border-radius:10px;padding:12px;text-align:center">
+      <div style="font-size:26px;font-weight:900;color:${topTeam?tcol(topTeam):'var(--muted)'}">${topTeam?'Team '+topTeam:'—'}</div>
+      <div style="font-size:10px;font-weight:700;color:${topTeam?tcol(topTeam):'var(--muted)'};text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Leading today</div>
+    </div>
+    ${topStreakers.length>0?`<div style="background:var(--gold-l);border-radius:10px;padding:12px;text-align:center;grid-column:1/-1">
+      <div style="font-size:18px;font-weight:800;color:var(--orange)">${topStreakers.length<=3?topStreakers.map(p=>p.name).join(' · ')+' · '+topStreak+' days 🔥':'Multiple players · '+topStreak+' days 🔥'}</div>
+      <div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">${topStreakers.length<=3?'Longest active streak':topStreakers.length+' players tied — check the board'}</div>
+    </div>`:''}
+  </div>`;
+
+  if(sorted.length===0){document.getElementById('feedList').innerHTML=statsHTML+'<div class="tmuted">No workouts yet. Be the first! 💪</div>';return;}
+  document.getElementById('feedList').innerHTML=statsHTML+sorted.slice(0,60).map(l=>{
+    const w=Array.isArray(l.workouts)?l.workouts.join(', '):(l.workout||'');
+    const ts=l.timestamp?.seconds?new Date(l.timestamp.seconds*1000):null;
+    const tstr=ts?ts.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' · '+ts.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):`June ${l.day}`;
+    const isMine=l.player===me.name;
+    const ct=(PLAYERS.find(x=>x.name===l.player)||{team:l.team}).team;
+    const isBacklog=l.day<todayDay&&ts&&ts.toDateString()===now.toDateString();
+    return `<div class="fi"><div class="fav" style="background:${tbg(ct)};color:${tcol(ct)};border:2px solid ${tcol(ct)}">${l.player[0]}</div><div class="ftxt"><div class="fn">${l.player} <span style="font-size:10px;color:${tcol(ct)};font-weight:700">Team ${ct}</span></div><div class="fw">💪 ${w}</div><div class="ft">${tstr} · <span style="color:var(--muted)">for June ${l.day}</span>${isBacklog?' <span style="background:var(--orange-l);color:var(--orange);font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:4px">backlog</span>':''}</div></div>${isMine?`<button onclick="deleteLog('${l.id}')" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px;flex-shrink:0">×</button>`:''}</div>`;
+  }).join('');
+}
+
+async function deleteLog(id){if(!confirm('Delete this workout entry?'))return;await db.collection('logs').doc(id).delete();}
+
+async function award30(){const p=document.getElementById('aPlayer').value;if(!p){alert('Select player');return;}if(bonus30.find(b=>b.player===p)){alert('Already awarded');return;}await db.collection('bonuses_30day').add({player:p,month:MONTH,year:YEAR});alert(`✅ +50 pts awarded to ${p}`);}
+
+function renderAdminRoles(){
+  document.getElementById('adminRoles').innerHTML=PLAYERS.map(p=>`<div style="display:grid;grid-template-columns:1fr 80px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;font-weight:700">${p.name}</span><select id="team_${p.name}" style="padding:6px;font-size:12px;margin-bottom:0"><option value="A"${p.team==='A'?' selected':''}>Team A</option><option value="B"${p.team==='B'?' selected':''}>Team B</option><option value="C"${p.team==='C'?' selected':''}>Team C</option></select></div>`).join('');
+}
+
+function saveRoles(){
+  PLAYERS.forEach(p=>{const t=document.getElementById(`team_${p.name}`)?.value;if(t)p.team=t;p.role='Player';});
+  const fresh=PLAYERS.find(p=>p.name===me.name);
+  if(fresh){me.team=fresh.team;me.role=fresh.role;}
+  localStorage.setItem('sw_user',JSON.stringify(me));
+  localStorage.setItem('sw_players',JSON.stringify(PLAYERS));
+  renderAdminRoles();refresh();alert('✅ Teams updated!');
+}
+
+function downloadSquadWarsLogs() {
+  if (!allLogs || allLogs.length === 0) {
+    alert("No log data found in memory yet! Wait a second for the feed to load.");
+    return;
+  }
+  try {
+    const jsonString = JSON.stringify(allLogs, null, 2);
+    const dataBlob = new Blob([jsonString], { type: "application/json" });
+    const downloadLink = document.createElement("a");
+    downloadLink.download = `SquadWars_June2026_Logs.json`;
+    downloadLink.href = window.URL.createObjectURL(dataBlob);
+    downloadLink.style.display = "none";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  } catch (error) {
+    alert("Export failed: " + error.message);
+  }
+}
+const TABS=['home','log','lb','feed','admin'];
+const ADMIN_PIN='9090';let adminUnlocked=false;
+function showTab(t){
+  if(t==='admin'&&!adminUnlocked){const pin=prompt('Enter admin PIN:');if(pin!==ADMIN_PIN){alert('Wrong PIN');return;}adminUnlocked=true;}
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById(`page-${t}`).classList.add('active');
+  document.querySelectorAll('.tab')[TABS.indexOf(t)]?.classList.add('active');
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
